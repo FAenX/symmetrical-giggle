@@ -4,14 +4,9 @@ import IORedis from 'ioredis';
 import dotenv from "dotenv"
 
 dotenv.config()
+const REDIS_URL = process.env.REDIS_URL
 
-const conf = {
-  host: process.env.REDIS_HOST,
-  user: process.env.REDIS_USER,
-  port: 12319,
-  password: process.env.REDIS_PASSWORD,
-};
-const connection = new IORedis(conf);
+const connection = new IORedis(REDIS_URL);
 const bookingNotificationQueue = new Queue("bookingStatusNotifications", {connection})
 
 
