@@ -4,24 +4,18 @@ import IORedis from 'ioredis';
 import dotenv from "dotenv"
 
 dotenv.config()
-const environment = process.env.NODE_ENV
 
-let bookingNotificationQueue;
-let connection;
+const conf = {
+  host: process.env.REDIS_HOST,
+  user: process.env.REDIS_USER,
+  port: 12319,
+  password: process.env.REDIS_PASSWORD,
+};
+const connection = new IORedis(conf);
+const bookingNotificationQueue = new Queue("bookingStatusNotifications", {connection})
 
-if (environment==="development"){
-  console.log(environment)
-  const conf = {
-    host: process.env.REDIS_HOST,
-    user: process.env.REDIS_USER,
-    port: 12319,
-    password: process.env.REDIS_PASSWORD,
-  };
-  connection = new IORedis(conf);
-  bookingNotificationQueue = new Queue("bookingStatusNotifications", {connection})
-}else{
-  bookingNotificationQueue = new Queue("bookingStatusNotifications")
-}
+
+// const myWorker = new Worker('myworker', {connection:{conf}});
 
   
 export async function bookingWorker(){
@@ -33,7 +27,7 @@ export async function bookingWorker(){
       //waiting
       const willExpireAt = requestedAt.add(1, 'minute');
       console.log(`Will expire at ${willExpireAt}`);
-    });
+    }, {connection});
     
     worker.on('progress', ({ jobId, data }, timestamp) => {
       console.log(`${jobId} reported progress ${data} at ${timestamp}`);
@@ -66,7 +60,7 @@ export async function bookingWorker(){
     worker.on('completed', job => {
       // job has completed
       console.log(job.id)
-    })
+    }, {connection})
   }
 
 
