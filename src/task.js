@@ -45,7 +45,7 @@ async function cronJob(willExpireAt, booking) {
 }
 
 // create notification streams for bookings added to cron
-export default async function bookingWorker() {
+async function bookingWorker() {
   const worker = new Worker(
     'bookingWaitingQueue',
     async (job) => {
@@ -75,3 +75,5 @@ export default async function bookingWorker() {
     userNotification.add({ booking_status: 'rejected' });
   });
 }
+
+bookingWorker();

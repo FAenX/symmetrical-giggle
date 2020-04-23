@@ -16,19 +16,18 @@ const normalizePort = (val) => {
   return false;
 };
 
-bookingWorker();
 
 const app = express();
 
 const port = normalizePort(process.env.PORT || '3001');
 
 // static files
-app.use(express.static(`${__dirname}/build`));
+app.use(express.static(`${__dirname}/public`));
 app.get('/*', (req, res) => {
-  res.sendFile('index.html', { root: join(__dirname, '/build') });
+  res.sendFile('index.html', { root: join(__dirname, '/public') });
 });
 
-const server = http.createServer(app);
+const server = http.createServer(app, () => bookingWorker());
 const address = server.address();
 
 const errorHandler = (error) => {
