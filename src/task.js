@@ -7,6 +7,8 @@ import cron from 'node-cron';
 import mongoose, { Schema } from 'mongoose';
 import model from './model';
 
+require('newrelic');
+
 
 dotenv.config();
 const { REDIS_URL, MONGO_DB } = process.env;
