@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Worker, Queue } from 'bullmq';
 import moment from 'moment';
 import IORedis from 'ioredis';
