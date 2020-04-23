@@ -1,1 +1,1 @@
-web: babel-node src/task.js
+worker: babel-node src/task.js
