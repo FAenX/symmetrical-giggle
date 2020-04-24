@@ -7,16 +7,14 @@ import cron from 'node-cron';
 import mongoose, { Schema } from 'mongoose';
 import model from './model';
 
-
 dotenv.config();
 const { REDIS_URL, MONGO_DB } = process.env;
 
 const connection = new IORedis(REDIS_URL);
 
 const Booking = mongoose.model(
-  'Booking', new Schema(model), 'Booking',
+'Booking', new Schema(model), 'Booking'
 );
-
 
 // cron jobs
 async function cronJob(willExpireAt, booking) {
@@ -24,7 +22,10 @@ async function cronJob(willExpireAt, booking) {
   expireAt += ' *';
 
   cron.schedule(expireAt, async () => {
-    await mongoose.connect(MONGO_DB, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(MONGO_DB, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
 
     const { id } = booking.booking;
     console.log(`Running task for bookind Id ${id} at ${moment().format()}`);
@@ -35,13 +36,21 @@ async function cronJob(willExpireAt, booking) {
       if (foundBooking.status === 'pending') {
         foundBooking.status = 'rejected';
         await foundBooking.save();
-        console.log(foundBooking.status);
+
         const userNotification = new Queue(foundBooking.userId, { connection });
-        userNotification.add({ bookingStatus: 'rejected', bookingId: foundBooking.id });
+        userNotification.add('bookingStatus', {
+          bookingStatus: 'closed',
+          bookingId: foundBooking.id,
+          userId: foundBooking.userId,
+          comment: 'Past 24hrs',
+        });
+
         mongoose.connection.close();
         console.log('connection to mongo db closed');
       }
-    } catch (e) { console.log(e); }
+    } catch (e) {
+      console.log(e);
+    }
   });
 }
 
@@ -71,9 +80,9 @@ async function bookingWorker() {
     // job has completed
     const data = { ...job.data.booking };
     const { userId, id } = data;
-    console.log(` Job id ${job.id} added to cron for booking Id ${id} and userId ${userId}`);
+    console.log(` Job id ${job.id} added to cron for booking Id ${id} and userId ${userId}`,);
     const userNotification = new Queue(userId, { connection });
-    userNotification.add({ booking_status: 'rejected' });
+    userNotification.add('bookingStatus', { bookingStatus: 'pending' });
   });
 }
 
